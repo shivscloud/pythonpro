@@ -1,0 +1,170 @@
+
+---
+
+```markdown
+# ⚖️ Court-Data Fetcher & Mini-Dashboard
+
+A secure and user-friendly Flask-based web application to fetch, manage, and view case metadata and judgments from Indian court websites like Delhi High Court and district eCourts. Includes a mini-dashboard for internal users to search, file, and download case records with role-based login and PostgreSQL integration.
+
+---
+
+## 🚀 Features
+
+- 🔐 **User Login System** (Username/Password)
+- 🧠 **Smart Case Search** via court name, type, number, and year
+- 🏛️ **Dropdown Selection of Courts** dynamically fetched from PostgreSQL
+- 🔎 **Advanced Case Viewer** with pagination, filtering, and sorting
+- 📥 **PDF Download** of selected case records
+- 🧾 **File New Case** form with:
+  - Court name
+  - Case type
+  - Case number
+  - Filing year
+  - Submission date
+  - Proposed hearing date
+  - Parties' names
+- 🤖 **CAPTCHA verification** on critical endpoints
+- 🧮 **PostgreSQL-backed** for scalable and persistent storage
+- 🎨 **Bootstrap 5 UI** for modern and responsive design
+
+---
+
+## 🧱 Tech Stack
+
+| Layer            | Tech                                 |
+|------------------|---------------------------------------|
+| Framework        | Python Flask                         |
+| Frontend         | HTML5, CSS3, Bootstrap 5              |
+| Database         | PostgreSQL                           |
+| Auth             | Session-based Login                  |
+| PDF Export       | xhtml2pdf / WeasyPrint               |
+| Deployment Ready | Docker (optional)                    |
+
+---
+
+## 🏗️ Project Structure
+
+```
+
+court-dashboard/
+├── app.py                     # Main Flask app
+├── templates/
+│   ├── login.html
+│   ├── dashboard.html
+│   ├── file\_case.html
+│   └── view\_case.html
+├── static/
+│   ├── styles.css             # Custom styling (optional)
+├── requirements.txt
+└── README.md
+
+````
+
+---
+
+## 🛠️ Setup Instructions
+
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/your-username/court-data-fetcher.git
+cd court-data-fetcher
+````
+
+### 2. Create Virtual Environment
+
+```bash
+python3 -m venv venv
+source venv/bin/activate  # or venv\Scripts\activate on Windows
+```
+
+### 3. Install Dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+### 4. Configure PostgreSQL
+
+Update your DB connection in `app.py`:
+
+```python
+conn = psycopg2.connect(
+    dbname='your_db',
+    user='your_user',
+    password='your_password',
+    host='localhost',
+    port='5432'
+)
+```
+
+### 5. Initialize Database Table
+
+```sql
+CREATE TABLE case_queries (
+    id SERIAL PRIMARY KEY,
+    court_name TEXT,
+    case_type TEXT,
+    case_number TEXT,
+    filing_year VARCHAR,
+    submission_date DATE,
+    proposal_hearing_date DATE,
+    parties TEXT
+);
+```
+
+### 6. Run the App
+
+```bash
+python app.py
+```
+
+App will be available at: [http://localhost:5000](http://localhost:5000)
+
+---
+
+## 📸 Screenshots
+
+| Login Page                 | Dashboard View                 |
+| -------------------------- | ------------------------------ |
+| ![](screenshots/login.png) | ![](screenshots/dashboard.png) |
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License.
+
+---
+
+## 👨‍💻 Author
+
+Moksh Nandini
+mkdir court
+$ cd court_data_fetcher/
+$ python -m venv venv
+$ source venv/Scripts/activate
+
+INSERT INTO case_queries (court_name, case_type, case_number, filing_year)
+VALUES 
+('Delhi High Court', 'Civil', '1234', '2020'),
+('Bombay High Court', 'Criminal', '5678', '2021'),
+('Madras High Court', 'Family', '3456', '2019'),
+('Calcutta High Court', 'Civil', '7890', '2022'),
+('Allahabad High Court', 'Labour', '1122', '2023'),
+('Karnataka High Court', 'Criminal', '3344', '2020'),
+('Punjab and Haryana High Court', 'Property', '5566', '2021'),
+('Gujarat High Court', 'Tax', '7788', '2022'),
+('Rajasthan High Court', 'Civil', '9900', '2023'),
+('Kerala High Court', 'Criminal', '1111', '2024'),
+('Patna High Court', 'Civil', '2222', '2020'),
+('Jharkhand High Court', 'Cyber', '3333', '2021'),
+('Chhattisgarh High Court', 'Motor Accident', '4444', '2018'),
+('Himachal Pradesh High Court', 'Civil', '5555', '2019'),
+('Tripura High Court', 'Criminal', '6666', '2023');
+
+ALTER TABLE case_queries
+ADD COLUMN filing_year VARCHAR,
+ADD COLUMN submission_date DATE,
+ADD COLUMN proposal_hearing_date DATE,
+ADD COLUMN parties TEXT;

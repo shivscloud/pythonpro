@@ -1,0 +1,8 @@
+flask
+psycopg2-binary
+requests
+beautifulsoup4
+xhtml2pdf
+pdfkit
+reportlab
+python-dotenv

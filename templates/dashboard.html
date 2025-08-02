@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Dashboard</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      background: linear-gradient(135deg, #a8edea, #fed6e3);
+      min-height: 100vh;
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .mini-header {
+      background: linear-gradient(to right, #667eea, #764ba2);
+      color: white;
+      padding: 1rem 2rem;
+      box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+    }
+
+    .mini-header h4 {
+      margin: 0;
+      font-weight: 600;
+    }
+
+    .mini-header .nav-buttons a {
+      color: white;
+      margin-left: 1rem;
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .mini-header .nav-buttons a:hover {
+      text-decoration: underline;
+    }
+
+    .container {
+      max-width: 800px;
+      background: #ffffffc9;
+      padding: 2rem;
+      border-radius: 1.5rem;
+      box-shadow: 0 0.75rem 2rem rgba(0, 0, 0, 0.1);
+      margin-top: 2rem;
+    }
+
+    .card.shadow {
+      border-radius: 1rem;
+    }
+
+    .card-header {
+      border-top-left-radius: 1rem;
+      border-top-right-radius: 1rem;
+    }
+
+    h3, h5 {
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Mini Dashboard Header -->
+<div class="mini-header d-flex justify-content-between align-items-center">
+  <h4>Moksha's Court-Data Fetcher</h4>
+  <div class="nav-buttons">
+    <a href="{{ url_for('dashboard') }}">Home</a>
+    <a href="{{ url_for('view_cases') }}">View Cases</a>
+    <a href="{{ url_for('logout') }}">Logout</a>
+  </div>
+</div>
+
+<!-- Main Content -->
+<div class="container">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h3>Welcome, {{ session.user }}</h3>
+    <a href="{{ url_for('view_cases') }}" class="btn btn-primary">View Submitted Cases</a>
+  </div>
+
+  <div class="mb-4">
+    <a href="{{ url_for('file_case') }}" class="btn btn-success">File a New Case</a>
+  </div>
+
+  <!-- Flash Messages -->
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      {% for message in messages %}
+        <div class="alert alert-danger">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  <!-- Search Form -->
+  <form method="POST" class="mb-4">
+    <div class="mb-3">
+      <label class="form-label">Court Name</label>
+      <select name="court" class="form-select" required>
+        <option value="">Select Court</option>
+        {% for court in courts %}
+          <option value="{{ court }}">{{ court }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Case Type</label>
+      <input type="text" name="case_type" class="form-control" required>
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Case Number</label>
+      <input type="text" name="case_number" class="form-control" required>
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">
+        CAPTCHA: What is {{ session.captcha_num1 }} + {{ session.captcha_num2 }}?
+      </label>
+      <input type="text" name="captcha_answer" class="form-control" required>
+    </div>
+
+    <button type="submit" class="btn btn-primary w-100">Search</button>
+  </form>
+
+  {% if result %}
+    <div class="alert alert-success" role="alert">
+      ✅ Your Case Search matched successfully! Showing matching case.
+    </div>
+  {% endif %}
+
+  {% if case_details %}
+    <!-- Case Display Card -->
+    <div class="card shadow">
+      <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Case Details</h5>
+        <a href="{{ url_for('download_pdf') }}" class="btn btn-outline-light btn-sm">Download PDF</a>
+      </div>
+      <div class="card-body">
+        <dl class="row">
+          <dt class="col-sm-4">Court Name</dt>
+          <dd class="col-sm-8">{{ case_details[1] }}</dd>
+
+          <dt class="col-sm-4">Case Type</dt>
+          <dd class="col-sm-8">{{ case_details[2] }}</dd>
+
+          <dt class="col-sm-4">Case Number</dt>
+          <dd class="col-sm-8">{{ case_details[3] }}</dd>
+
+          <dt class="col-sm-4">Submitted On</dt>
+          <dd class="col-sm-8">{{ case_details[5] }}</dd>
+        </dl>
+      </div>
+    </div>
+  {% endif %}
+</div>
+
+</body>
+</html>
