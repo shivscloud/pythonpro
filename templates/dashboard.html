@@ -62,7 +62,7 @@
 
 <!-- Mini Dashboard Header -->
 <div class="mini-header d-flex justify-content-between align-items-center">
-  <h4>Moksha's Court-Data Fetcher</h4>
+  <h4>{{ session.user }}'s Court-Data Fetcher</h4>
   <div class="nav-buttons">
     <a href="{{ url_for('dashboard') }}">Home</a>
     <a href="{{ url_for('view_cases') }}">View Cases</a>

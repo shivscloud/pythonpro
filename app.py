@@ -13,13 +13,72 @@ app = Flask(__name__)
 app.secret_key = 'your_secret_key'
 app.permanent_session_lifetime = timedelta(minutes=30)
 
+# Add this function near the top of app.py
+def init_db():
+    conn = psycopg2.connect(
+        host="dpg-d9tn27qjnfac73ca3m60-a.oregon-postgres.render.com",
+        database="rajdb_e5dd",
+        user="rajuser",
+        password="VkT4J00FD2T5iFSdwDgkBiS62EVPLU0X",
+        port=5432,
+        sslmode="require"   # Render requires SSL
+    )
+    cur = conn.cursor()
+    # cur.execute("""
+    #     CREATE TABLE IF NOT EXISTS case_queries (
+    #         id SERIAL PRIMARY KEY,
+    #         court_name VARCHAR(255) NOT NULL,
+    #         case_type VARCHAR(255) NOT NULL,
+    #         case_number VARCHAR(255) NOT NULL,
+    #         filing_year INT,
+    #         submission_date DATE,
+    #         proposal_hearing_date DATE,
+    #         parties TEXT,
+    #         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    #     )
+    # """)
+    # Insert sample courts if table is empty
+    # cur.execute("SELECT COUNT(*) FROM case_queries")
+    # if cur.fetchone()[0] == 0:
+    #     cur.execute("""
+    #         INSERT INTO case_queries (court_name, case_type, case_number, filing_year, submission_date, proposal_hearing_date, parties)
+    #         VALUES
+    #         ('Hyderabad Civil Court', 'Civil', 'CIV-001', 2024, '2024-07-01', '2024-07-15', 'Alice vs Bob'),
+    #         ('Secunderabad Criminal Court', 'Criminal', 'CRIM-002', 2024, '2024-07-05', '2024-07-20', 'State vs John'),
+    #         ('High Court of Telangana', 'Appeal', 'AP-003', 2024, '2024-07-10', '2024-07-25', 'Company X vs Company Y')
+    #     """)
+    
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS case_queries (
+            id SERIAL PRIMARY KEY,
+            court_name VARCHAR(255) NOT NULL,
+            case_type VARCHAR(255) NOT NULL,
+            case_number VARCHAR(255) NOT NULL,
+            filing_year INT,
+            submission_date DATE,
+            proposal_hearing_date DATE,
+            parties TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    conn.commit()
+    cur.close()
+    conn.close()
+
 # Database connection
 def get_db_connection():
     return psycopg2.connect(
-        host=os.getenv('DATABASE_HOST'),
-        database=os.getenv('DATABASE_NAME'),
-        user=os.getenv('DATABASE_USER'),
-        password=os.getenv('DATABASE_PASSWORD')
+        host="dpg-d9tn27qjnfac73ca3m60-a.oregon-postgres.render.com",
+        database="rajdb_e5dd",
+        user="rajuser",
+        password="VkT4J00FD2T5iFSdwDgkBiS62EVPLU0X",
+        port=5432,
+        sslmode="require"   # Render requires SSL
+
+        # host=os.getenv('DATABASE_HOST'),
+        # database=os.getenv('DATABASE_NAME'),
+        # user=os.getenv('DATABASE_USER'),
+        # password=os.getenv('DATABASE_PASSWORD')
 
     )
 
@@ -205,4 +264,5 @@ def logout():
     return redirect(url_for('login'))
 
 if __name__ == '__main__':
+    init_db()   # 👈 ensures table exists
     app.run(debug=True)
