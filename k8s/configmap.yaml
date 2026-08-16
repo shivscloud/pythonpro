@@ -1,10 +1,12 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: python-app-config
-  namespace: python-app
+  name: rajeshapp-config
+  namespace: rajeshapp
+  labels:
+    app.kubernetes.io/name: rajeshapp
+    app.kubernetes.io/part-of: rajeshapp
+
 data:
-  # Non-sensitive configuration
-  FLASK_ENV: "production"
-  SESSION_TIMEOUT_MIN: "30"
-  # Add other non-sensitive defaults here
+  PORT: "8080"
+  PYTHONUNBUFFERED: "1"

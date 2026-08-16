@@ -1,64 +1,138 @@
 apiVersion: apps/v1
 kind: Deployment
+
 metadata:
-  name: python-app
-  namespace: python-app
+  name: rajeshapp
+  namespace: rajeshapp
+
   labels:
-    app: python-app
+    app.kubernetes.io/name: rajeshapp
+    app.kubernetes.io/part-of: rajeshapp
+
 spec:
   replicas: 2
+
   selector:
     matchLabels:
-      app: python-app
-  strategy:
-    type: RollingUpdate
-    rollingUpdate:
-      maxUnavailable: 1
-      maxSurge: 1
+      app.kubernetes.io/name: rajeshapp
+
   template:
     metadata:
       labels:
-        app: python-app
+        app.kubernetes.io/name: rajeshapp
+        app.kubernetes.io/part-of: rajeshapp
+
     spec:
-      serviceAccountName: python-app-sa
+
       securityContext:
-        runAsNonRoot: true
-        runAsUser: 1000
+        # Existing image uses USER appuser.
+        # runAsNonRoot is disabled because Kubernetes cannot
+        # verify the named user from the existing image.
+        seccompProfile:
+          type: RuntimeDefault
+
       containers:
-        - name: python-app
-          image: python-app:local
+        - name: rajeshapp
+
+          image: rajeshsingam/rajesh-app:1.0.0
+
           imagePullPolicy: IfNotPresent
+
           ports:
-            - containerPort: 8080
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+
+          # -------------------------------------------------
+          # Environment variables
+          # -------------------------------------------------
           envFrom:
             - configMapRef:
-                name: python-app-config
+                name: rajeshapp-config
+
             - secretRef:
-                name: python-app-secret
+                name: rajeshapp-secret
+
+          # -------------------------------------------------
+          # Resource limits
+          # -------------------------------------------------
           resources:
             requests:
               cpu: "100m"
               memory: "128Mi"
+
             limits:
               cpu: "500m"
               memory: "512Mi"
-          readinessProbe:
-            httpGet:
-              path: /health
-              port: 8080
-            initialDelaySeconds: 5
-            periodSeconds: 10
-            failureThreshold: 3
-          livenessProbe:
-            httpGet:
-              path: /health
-              port: 8080
-            initialDelaySeconds: 15
-            periodSeconds: 20
-            failureThreshold: 3
+
+          # -------------------------------------------------
+          # Container security
+          # -------------------------------------------------
+          securityContext:
+            allowPrivilegeEscalation: false
+
+            # Keep the root filesystem read-only.
+            readOnlyRootFilesystem: true
+
+            capabilities:
+              drop:
+                - ALL
+
+          # -------------------------------------------------
+          # Writable /tmp
+          #
+          # Required by Gunicorn because it creates:
+          # /tmp/wgunicorn-xxxxx
+          # -------------------------------------------------
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+
+          # -------------------------------------------------
+          # Startup probe
+          # -------------------------------------------------
           startupProbe:
             httpGet:
               path: /health
-              port: 8080
+              port: http
+
             failureThreshold: 30
+            periodSeconds: 2
+            timeoutSeconds: 5
+
+          # -------------------------------------------------
+          # Readiness probe
+          # -------------------------------------------------
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: http
+
+            initialDelaySeconds: 5
             periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+            successThreshold: 1
+
+          # -------------------------------------------------
+          # Liveness probe
+          # -------------------------------------------------
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+
+            initialDelaySeconds: 15
+            periodSeconds: 20
+            timeoutSeconds: 3
+            failureThreshold: 3
+
+      # -----------------------------------------------------
+      # Volumes
+      # -----------------------------------------------------
+      volumes:
+
+        - name: tmp
+          emptyDir:
+            medium: Memory
+            sizeLimit: 64Mi
