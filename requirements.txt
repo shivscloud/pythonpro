@@ -6,3 +6,4 @@ xhtml2pdf
 pdfkit
 reportlab
 python-dotenv
+gunicorn

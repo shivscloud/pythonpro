@@ -10,19 +10,19 @@ from datetime import timedelta
 import random
 
 app = Flask(__name__)
-app.secret_key = 'your_secret_key'
-app.permanent_session_lifetime = timedelta(minutes=30)
+# Use environment-provided secret in production
+app.secret_key = os.getenv('FLASK_SECRET', 'dev_secret')
+app.permanent_session_lifetime = timedelta(minutes=int(os.getenv('SESSION_TIMEOUT_MIN', 30)))
+
+
+@app.route('/health', methods=['GET'])
+def health():
+    return {"status": "healthy"}, 200
 
 # Add this function near the top of app.py
 def init_db():
-    conn = psycopg2.connect(
-        host="dpg-d9tn27qjnfac73ca3m60-a.oregon-postgres.render.com",
-        database="rajdb_e5dd",
-        user="rajuser",
-        password="VkT4J00FD2T5iFSdwDgkBiS62EVPLU0X",
-        port=5432,
-        sslmode="require"   # Render requires SSL
-    )
+    # Initialize DB using the same connection helper so environment works in containers
+    conn = get_db_connection()
     cur = conn.cursor()
     # cur.execute("""
     #     CREATE TABLE IF NOT EXISTS case_queries (
@@ -67,19 +67,25 @@ def init_db():
 
 # Database connection
 def get_db_connection():
+    # Support a full DATABASE_URL or individual env vars for flexibility
+    database_url = os.getenv('DATABASE_URL')
+    if database_url:
+        return psycopg2.connect(database_url)
+
+    host = os.getenv('DATABASE_HOST', 'localhost')
+    database = os.getenv('DATABASE_NAME', 'rajdb')
+    user = os.getenv('DATABASE_USER', 'rajuser')
+    password = os.getenv('DATABASE_PASSWORD', '')
+    port = int(os.getenv('DATABASE_PORT', 5432))
+    sslmode = os.getenv('DATABASE_SSLMODE', 'disable')
+
     return psycopg2.connect(
-        host="dpg-d9tn27qjnfac73ca3m60-a.oregon-postgres.render.com",
-        database="rajdb_e5dd",
-        user="rajuser",
-        password="VkT4J00FD2T5iFSdwDgkBiS62EVPLU0X",
-        port=5432,
-        sslmode="require"   # Render requires SSL
-
-        # host=os.getenv('DATABASE_HOST'),
-        # database=os.getenv('DATABASE_NAME'),
-        # user=os.getenv('DATABASE_USER'),
-        # password=os.getenv('DATABASE_PASSWORD')
-
+        host=host,
+        database=database,
+        user=user,
+        password=password,
+        port=port,
+        sslmode=sslmode
     )
 
 @app.route('/')
@@ -264,5 +270,7 @@ def logout():
     return redirect(url_for('login'))
 
 if __name__ == '__main__':
-    init_db()   # 👈 ensures table exists
-    app.run(debug=True)
+    # Local development entrypoint
+    init_db()   # ensures table exists when running locally
+    # Default FLASK_ENV to 'production' so debug is disabled unless explicitly set
+    app.run(host='0.0.0.0', port=int(os.getenv('PORT', 8080)), debug=(os.getenv('FLASK_ENV', 'production') != 'production'))
